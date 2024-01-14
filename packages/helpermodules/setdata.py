@@ -1010,6 +1010,8 @@ class SetData:
                 self._validate_value(msg, str)
             elif "openWB/set/system/mqtt/bridge/" in msg.topic:
                 self._validate_value(msg, "json")
+            elif "openWB/set/system/ladepark_at_thg/config" in msg.topic:
+                self._validate_value(msg, "json")
             elif "configurable" in msg.topic:
                 self._validate_value(msg, None)
             elif "device" in msg.topic:

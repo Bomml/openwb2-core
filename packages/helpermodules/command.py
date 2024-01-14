@@ -595,6 +595,22 @@ class Command:
         self.addMqttBridge(connection_id, payload, cloud_config)
         pub_user_message(payload, connection_id, "Verbindung zur Cloud wurde angelegt.", MessageType.SUCCESS)
 
+    def addLadeparkAtThgData(self, connection_id: str, payload: dict) -> None:
+        config = {
+            "server_url": payload["data"]["serverUrl"],
+            "api_key": payload["data"]["apiKey"],
+        }
+        Pub().pub("openWB/set/system/ladepark_at_thg/config", config)
+        pub_user_message(payload, connection_id, "Verbindungsdaten erfolgreich gespeichert.", MessageType.SUCCESS)
+
+    def removeLadeparkAtThgData(self, connection_id: str, payload: dict) -> None:
+        config = {
+            "server_url": None,
+            "api_key": None,
+        }
+        Pub().pub("openWB/set/system/ladepark_at_thg/config", config)
+        pub_user_message(payload, connection_id, 'Verbindungsdaten gelöscht.', MessageType.SUCCESS)
+
     def addMqttBridge(self, connection_id: str, payload: dict,
                       bridge_default: dict = bridge.get_default_config()) -> None:
         if ProcessBrokerBranch("system/mqtt/bridge/").check_mqtt_bridge_exists(bridge_default["name"]):
