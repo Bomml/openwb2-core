@@ -9,6 +9,8 @@ from typing import Dict, List, Optional
 import re
 import traceback
 from pathlib import Path
+import requests
+from requests.auth import HTTPBasicAuth
 
 import paho.mqtt.client as mqtt
 from control.chargelog import chargelog
@@ -610,6 +612,16 @@ class Command:
         }
         Pub().pub("openWB/set/system/ladepark_at_thg/config", config)
         pub_user_message(payload, connection_id, 'Verbindungsdaten gelöscht.', MessageType.SUCCESS)
+
+    def testConnectionLadeparkAtThg(self, connection_id: str, payload: dict) -> None:
+        headers = {"X-API-Key": payload["data"]["apiKey"]}
+        response = requests.get(payload["data"]["serverUrl"], verify=True, timeout=5, headers=headers)
+        if (response.status_code == 200):
+            pub_user_message(payload, connection_id, 'Verbindungsversuch erfolgreich!', MessageType.SUCCESS)
+        elif (response.status_code == 401):
+            pub_user_message(payload, connection_id, 'Verbindungsdaten nicht korrekt!', MessageType.ERROR)
+        else:
+            pub_user_message(payload, connection_id, 'Verbindungsversuch fehlgeschlagen!', MessageType.ERROR)
 
     def addMqttBridge(self, connection_id: str, payload: dict,
                       bridge_default: dict = bridge.get_default_config()) -> None:
