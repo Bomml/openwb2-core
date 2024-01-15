@@ -138,6 +138,7 @@ class SubData:
             # Nicht mit hash # abonnieren, damit nicht die Komponenten vor den Devices empfangen werden!
             ("openWB/system/+", 2),
             ("openWB/system/backup_cloud/#", 2),
+            ("openWB/system/ladepark_at_thg/#", 2),
             ("openWB/system/device/module_update_completed", 2),
             ("openWB/system/device/+/config", 2),
         ])
@@ -781,6 +782,11 @@ class SubData:
                     mod = importlib.import_module(".backup_clouds."+config_dict["type"]+".backup_cloud", "modules")
                     config = dataclass_from_dict(mod.device_descriptor.configuration_factory, config_dict)
                     var["system"].backup_cloud = mod.create_backup_cloud(config)
+            elif "openWB/system/ladepark_at_thg/config" in msg.topic:
+                config_dict = decode_payload(msg.payload)
+                mod = importlib.import_module(".ladepark_at_thg.ladepark_at_thg", "modules")
+                config = dataclass_from_dict(mod.device_descriptor.configuration_factory, config_dict)
+                var["system"].ladepark_at_thg = mod.create_ladepark_at_thg(config)
             else:
                 if "module_update_completed" in msg.topic:
                     self.event_module_update_completed.set()

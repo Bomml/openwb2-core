@@ -5,6 +5,7 @@ import os
 import subprocess
 import threading
 import time
+import uuid
 from pathlib import Path
 from typing import Optional
 
@@ -12,6 +13,7 @@ from typing import Optional
 from helpermodules import pub
 from control import data
 from modules.common.configurable_backup_cloud import ConfigurableBackupCloud
+from modules.ladepark_at_thg.ladepark_at_thg import ConfigurableLadeparkAtThg
 
 log = logging.getLogger(__name__)
 
@@ -23,6 +25,7 @@ class System:
         self.data = {"update_in_progress": False,
                      "perform_update": False}
         self.backup_cloud: Optional[ConfigurableBackupCloud] = None
+        self.ladepark_at_thg: Optional[ConfigurableLadeparkAtThg] = None
 
     def perform_update(self):
         """ markiert ein aktives Update, triggert das Update auf dem Master und den externen WBs.
@@ -93,6 +96,24 @@ class System:
                 log.debug("Don't start multiple instances of cloud backup thread.")
                 return
         threading.Thread(target=create, args=(), name="cloud backup").start()
+
+    def create_backup_and_send_to_ladepark_at_thg(self):
+        def create():
+            try:
+                if self.ladepark_at_thg is not None:
+                    backup_filename = self.create_backup()
+                    with open(self._get_parent_file()/'data'/'backup'/backup_filename, 'rb') as f:
+                        data = f.read()
+                    self.ladepark_at_thg.update(str(uuid.getnode()), backup_filename, data)
+                log.debug('LadeparkAT-THG Sicherung erstellt und hochgeladen.')
+            except Exception as e:
+                raise e
+
+        for thread in threading.enumerate():
+            if thread.name == "ladeparkAt THG Data":
+                log.debug("Don't start multiple instances of ladeparkAT-THG Data thread.")
+                return
+        threading.Thread(target=create, args=(), name="ladeparkAt THG Data").start()
 
     def create_backup(self) -> str:
         result = subprocess.run([str(self._get_parent_file() / "runs" / "backup.sh"), "1"], stdout=subprocess.PIPE)

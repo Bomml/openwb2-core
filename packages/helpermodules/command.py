@@ -11,6 +11,7 @@ import traceback
 from pathlib import Path
 import requests
 from requests.auth import HTTPBasicAuth
+import uuid
 
 import paho.mqtt.client as mqtt
 from control.chargelog import chargelog
@@ -614,14 +615,39 @@ class Command:
         pub_user_message(payload, connection_id, 'Verbindungsdaten gelöscht.', MessageType.SUCCESS)
 
     def testConnectionLadeparkAtThg(self, connection_id: str, payload: dict) -> None:
-        headers = {"X-API-Key": payload["data"]["apiKey"]}
-        response = requests.get(payload["data"]["serverUrl"], verify=True, timeout=5, headers=headers)
+        if payload is not None:
+            config = {
+                "server_url": payload["data"]["serverUrl"],
+                "api_key": payload["data"]["apiKey"],
+            }
+        elif SubData.system_data["system"].ladepark_at_thg is not None:
+            config = {
+                "server_url": SubData.system_data["system"].ladepark_at_thg["server_url"],
+                "api_key": SubData.system_data["system"].ladepark_at_thg["api_key"],
+            }
+        else:
+            config = {
+                "server_url": None,
+                "api_key": None,
+            }
+
+        headers = {"X-API-Key": config["api_key"]}
+        response = requests.get(f'{config["server_url"]}?macaddress={str(uuid.getnode())}', verify=True, timeout=5, headers=headers)
         if (response.status_code == 200):
             pub_user_message(payload, connection_id, 'Verbindungsversuch erfolgreich!', MessageType.SUCCESS)
+        # wrong mac address fehlermeldung
         elif (response.status_code == 401):
             pub_user_message(payload, connection_id, 'Verbindungsdaten nicht korrekt!', MessageType.ERROR)
         else:
             pub_user_message(payload, connection_id, 'Verbindungsversuch fehlgeschlagen!', MessageType.ERROR)
+
+    def uploadManualDataToLadeparkAtThg(self, connection_id: str, payload: dict) -> None:
+        if SubData.system_data["system"].ladepark_at_thg is not None:
+            # credentials checken
+            SubData.system_data["system"].create_backup_and_send_to_ladepark_at_thg()
+        else:
+            pub_user_message(payload, connection_id,
+                             "Es ist kein THG-Module konfiguriert.<br />", MessageType.WARNING)
 
     def addMqttBridge(self, connection_id: str, payload: dict,
                       bridge_default: dict = bridge.get_default_config()) -> None:
