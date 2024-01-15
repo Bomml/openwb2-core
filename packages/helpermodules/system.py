@@ -100,13 +100,15 @@ class System:
     def create_backup_and_send_to_ladepark_at_thg(self):
         def create():
             try:
-                if self.ladepark_at_thg is not None:
+                if (self.ladepark_at_thg.config.server_url is not None
+                        and self.ladepark_at_thg.config.api_key is not None):
                     backup_filename = self.create_backup()
                     with open(self._get_parent_file()/'data'/'backup'/backup_filename, 'rb') as f:
                         data = f.read()
-                    self.ladepark_at_thg.update(str(uuid.getnode()), backup_filename, data)
-                log.debug('LadeparkAT-THG Sicherung erstellt und hochgeladen.')
+                    self.ladepark_at_thg.update(hex(uuid.getnode()), backup_filename, data)
+                    log.debug('LadeparkAT-THG Sicherung erstellt und hochgeladen.')
             except Exception as e:
+                log.error('LadeparkAT-THG Sicherung fehlgeschlagen!')
                 raise e
 
         for thread in threading.enumerate():

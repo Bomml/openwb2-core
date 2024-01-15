@@ -10,6 +10,7 @@ log = logging.getLogger(__name__)
 
 T_LADEPARK_AT_THG_CONFIG = TypeVar("T_LADEPARK_AT_THG_CONFIG")
 
+
 class ConfigurableLadeparkAtThg(Generic[T_LADEPARK_AT_THG_CONFIG]):
     def __init__(self,
                  config: T_LADEPARK_AT_THG_CONFIG,
@@ -22,9 +23,6 @@ class ConfigurableLadeparkAtThg(Generic[T_LADEPARK_AT_THG_CONFIG]):
 
 
 def upload_data(config: LadeparkAtThgConfiguration, mac_address: str, backup_filename: str, backup_file: bytes) -> None:
-    # todo check credentials?????
-    # my api things
-
     req.get_http_session().put(
         f'{config.server_url}',
         headers={'X-Requested-With': 'XMLHttpRequest', "X-API-Key": config.api_key},
@@ -35,7 +33,6 @@ def upload_data(config: LadeparkAtThgConfiguration, mac_address: str, backup_fil
         }
     )
 
-    # check success and so on
 
 def create_ladepark_at_thg(config: LadeparkAtThgConfiguration):
     def updater(mac_address: str, backup_filename: str, backup_file: bytes):
