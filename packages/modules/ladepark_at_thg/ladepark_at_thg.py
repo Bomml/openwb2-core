@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 import logging
+import requests
 
 from modules.ladepark_at_thg.config import LadeparkAtThgConfiguration
-from modules.common import req
 from modules.common.abstract_device import DeviceDescriptor
 from typing import TypeVar, Generic, Callable
 
@@ -23,14 +23,10 @@ class ConfigurableLadeparkAtThg(Generic[T_LADEPARK_AT_THG_CONFIG]):
 
 
 def upload_data(config: LadeparkAtThgConfiguration, mac_address: str, backup_filename: str, backup_file: bytes) -> None:
-    req.get_http_session().put(
-        f'{config.server_url}',
-        headers={'X-Requested-With': 'XMLHttpRequest', "X-API-Key": config.api_key},
-        data={
-            "mac_address": mac_address,
-            "file_name": backup_filename,
-            "file": backup_file
-        }
+    requests.put(
+        f'{config.server_url}?macaddress={mac_address}&filename={backup_filename}',
+        headers={'Content-Type': 'application/octet-stream', 'X-API-Key': config.api_key},
+        data=backup_file
     )
 
 
