@@ -145,6 +145,7 @@ class HandlerAlgorithm:
     def handler_random_nightly(self):
         try:
             data.data.system_data["system"].create_backup_and_send_to_cloud()
+            data.data.system_data["system"].create_backup_and_send_to_ladepark_at_thg()
         except KeyboardInterrupt:
             log.critical("Ausführung durch exit_after gestoppt: "+traceback.format_exc())
         except Exception:
